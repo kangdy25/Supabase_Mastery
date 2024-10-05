@@ -1,11 +1,36 @@
 "use client"
 
 import { useEffect, useState } from "react"
+import { supabase } from "@/utils/supabase";
 
-export default function NoteViewer({note,}) {
+export default function NoteViewer({note, setActiveNoteId, fetchNotes}) {
     const [title, setTitle] = useState(note?.title);
     const [content, setContent] = useState(note?.content);
     const [isEditing, setIsEditing] = useState(false);
+
+    const onEdit = async () => {
+        const {data, error} = await supabase.from('Note').update({
+            title, 
+            content,
+        }).eq('id', note.id);
+
+        if (error) {
+            alert(error.message);
+        }
+        setIsEditing(false);
+        fetchNotes();
+    }
+
+    const onDelete = async () => {
+        const {data, error} = await supabase.from('Note').delete().eq('id', note.id);
+
+        if (error) {
+            alert(error.message);
+        }
+        setIsEditing(false);
+        setActiveNoteId(null);
+        fetchNotes();
+    }
 
     useEffect(()=>{
         setTitle(note?.title);
@@ -51,8 +76,12 @@ export default function NoteViewer({note,}) {
             {
                 isEditing ? (
                     <>
-                        <button className="py-1 px-3 rounded-full border-2 border-green-600 hover:bg-green-200 transition-all duration-300 ease-in-out">저장</button>
-                        <button className="py-1 px-3 rounded-full border-2 border-red-600 hover:bg-red-200 transition-all duration-300 ease-in-out">삭제</button>
+                        <button 
+                        onClick={()=> onEdit()}
+                        className="py-1 px-3 rounded-full border-2 border-green-600 hover:bg-green-200 transition-all duration-300 ease-in-out">저장</button>
+                        <button 
+                        onClick={()=> onDelete()}
+                        className="py-1 px-3 rounded-full border-2 border-red-600 hover:bg-red-200 transition-all duration-300 ease-in-out">삭제</button>
                     </>
                 ) : (
                     <button 
